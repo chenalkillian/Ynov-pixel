@@ -75,9 +75,11 @@ ws.onmessage = (event) => {
             ctx.fillRect(p.x, p.y, 10, 10);  
         });
     } else if (action === 'chat') {
-        console.log('Message reçu du chat:', data); // Log des données du message chat
-        displayMessage(`${data.user}: ${data.text}`); // Affichage du message reçu
+    // N'afficher le message que s'il ne vient pas de l'utilisateur courant
+    if (data.user !== userName) {
+        displayMessage(`${data.user}: ${data.text}`);
     }
+}
 };
 
 // Gestion de la fermeture de la connexion WebSocket
@@ -117,18 +119,20 @@ function sendChatMessage() {
             data: { text: messageText, user: userName }, 
             id: pageId 
         };        
-        // Envoyer le message au serveur via WebSocket
-        ws.send(JSON.stringify(messageData));
-        console.log('Message envoyé:', messageData); // Log du message envoyé
-
-        // Effacer le champ de saisie
-        messageInput.value = '';
         
-        // Afficher le message localement aussi
-        displayMessage(`Vous : ${messageText}`);
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(messageData));
+            console.log('Message envoyé:', messageData);
+
+            messageInput.value = '';
+            
+            // Afficher uniquement "Vous : message"
+            displayMessage(`Vous : ${messageText}`);
+        } else {
+            console.error('WebSocket is not open:', ws.readyState);
+        }
     }
 }
-
 // Fonction pour afficher un message dans la zone de messages du chat
 function displayMessage(message) {
     const newMessage = document.createElement('p');

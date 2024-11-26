@@ -13,12 +13,18 @@ wss.on('connection', (ws) => {
 
     ws.on('message', (message) => {
         const { action, data, id } = JSON.parse(message);
-        console.log(action, data, id)
-        if (action === 'draw') {
-            pixels[data.id] = data;
+        console.log(action, data, id);
+
+        // Gérer à la fois les actions 'draw' et 'chat'
+        if (action === 'draw' || action === 'chat') {
+            if (action === 'draw') {
+                pixels[data.id] = data;
+            }
+            
+            // Diffuser le message à tous les clients connectés
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({action,data}));
+                    client.send(JSON.stringify({action, data}));
                 }
             });
         }
