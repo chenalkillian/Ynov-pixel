@@ -17,11 +17,15 @@ function rgbToHex(r, g, b) {
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
 }
 
+// Variable pour stocker l'état des pixels cliqués
+const clickedPixels = {};
+
 // Écouteur d'événements pour le clic sur le canevas
 canvas.addEventListener('click', (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
+    const pixelKey = `${x},${y}`;
 
     // Obtenir les données de l'image au point cliqué
     const pixelData = ctx.getImageData(x, y, 10, 10).data; // Récupère les données RGBA
@@ -34,15 +38,19 @@ canvas.addEventListener('click', (event) => {
     let color = 'black'; // Couleur par défaut
     console.log(`Couleur au clic: ${hexColor}`);
 
-    // Changer la couleur si le pixel est noir
-    if (hexColor === '#000000') {
+    // Changer la couleur si le pixel est noir ou blanc
+    if (clickedPixels[pixelKey] === 'black') {
         color = 'white';
+        clickedPixels[pixelKey] = 'white';
+    } else {
+        color = 'black';
+        clickedPixels[pixelKey] = 'black';
     }
 
     // Inclure le pseudo dans les données envoyées
     const pixelDataToSend = { 
         action: 'draw', 
-        data: { id: `${x},${y}`, x, y, color, user: userName }, 
+        data: { id: pixelKey, x, y, color, user: userName }, 
         id: pageId 
     };
     
